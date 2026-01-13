@@ -10,7 +10,6 @@ import java.awt.Graphics2D;
 public class TowerInfos {
     public interface TowerInfo {
         String getName();
-        UUID getUuid();
         HashMap<String, Double> getStats();
 
         Runnable getGuiCreator(Graphics2D g2d);
@@ -31,9 +30,9 @@ public class TowerInfos {
         guiCreator.run();
     }
 
+    // Tower Info Classes (All Tower Infos)
     private static class Test implements TowerInfo {
         private final String name;
-        private final UUID uuid;
         private final HashMap<String, Double> stats;
 
         private final int x, y;
@@ -41,7 +40,6 @@ public class TowerInfos {
 
         public Test(int x, int y, int width, int height){
             name = "Test";
-            uuid = UUID.randomUUID();
             this.x = x;
             this.y = y;
             this.width = width;
@@ -54,11 +52,6 @@ public class TowerInfos {
         @Override
         public String getName() {
             return name;
-        }
-
-        @Override
-        public UUID getUuid() {
-            return uuid;
         }
 
         @Override
