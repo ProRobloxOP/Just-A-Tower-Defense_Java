@@ -1,11 +1,17 @@
 package Modules.Utilities;
 
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.utils.viewport.*;
 
+import Modules.Tools.LoadFont;
 import Modules.Infos.Towers.TowerInfos;
 import Modules.Infos.Towers.TowerInfos.TowerInfo;
 
@@ -28,6 +34,10 @@ public class Loader implements Screen {
     private FitViewport towerViewport;
     private SpriteBatch towerBatch;
 
+    private FitViewport labelViewport;
+    private BitmapFont loadingFont;
+    private SpriteBatch labelBatch;
+
     public Loader(final Main mainGame) {
         Viewport mainViewport = mainGame.mainViewpoint;
         float screenWidth = mainViewport.getWorldWidth();
@@ -37,6 +47,7 @@ public class Loader implements Screen {
         y = screenHeight/2;
 
         this.mainGame = mainGame;
+        LoadFont.load();
     }
 
     public void addLoadingTask(String id, Runnable runnable) {
@@ -49,6 +60,7 @@ public class Loader implements Screen {
         loadingRunnables = new HashMap<>();
 
         addLoadingTask("Backdrop", this::loadBackdrop);
+        addLoadingTask("LoadingLabel", this::loadLoadingFont);
         addLoadingTask("ShowcaseTower", this::loadShowcaseTower);
     }
 
@@ -60,6 +72,7 @@ public class Loader implements Screen {
         }
 
         renderBackdrop();
+        //renderLoadingFont();
         renderTower();
     }
 
@@ -86,7 +99,21 @@ public class Loader implements Screen {
 
     @Override
     public void dispose() {
+        backdropBatch.dispose();
+        towerBatch.dispose();
+        labelBatch.dispose();
 
+        loadingFont.dispose();
+    }
+
+    private void loadLoadingFont() {
+        String FontPath = "Fonts/Inter/static/Inter_18pt-Regular.fnt";
+        Viewport mainViewport = mainGame.mainViewpoint;
+
+        labelViewport = new FitViewport(mainViewport.getWorldWidth(), mainViewport.getWorldHeight());
+        labelBatch = new SpriteBatch();
+        LoadFont.bitmapFont(FontPath);
+        loadingFont = LoadFont.generateFont(FontPath, 30);
     }
 
     private void loadBackdrop(){
@@ -109,6 +136,16 @@ public class Loader implements Screen {
         showcaseTower.loadSprite();
     }
 
+    private void renderLoadingFont(){
+        labelViewport.apply();
+        labelBatch.setProjectionMatrix(labelViewport.getCamera().combined);
+        labelBatch.begin();
+
+        loadingFont.draw(labelBatch, "loading...", x, y/5);
+
+        labelBatch.end();
+    }
+
     private void renderBackdrop() {
         backdropViewport.apply();
         backdropBatch.setProjectionMatrix(backdropViewport.getCamera().combined);
@@ -125,6 +162,7 @@ public class Loader implements Screen {
         towerBatch.begin();
 
         showcaseTower.getSprite().draw(towerBatch);
+
         towerBatch.end();
     }
 }
