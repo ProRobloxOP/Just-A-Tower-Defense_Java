@@ -6,9 +6,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.utils.viewport.*;
 
 import Modules.Tools.LoadFont;
@@ -35,8 +32,8 @@ public class Loader implements Screen {
     private SpriteBatch towerBatch;
 
     private FitViewport labelViewport;
-    private BitmapFont loadingFont;
     private SpriteBatch labelBatch;
+    private BitmapFont loadingFont;
 
     public Loader(final Main mainGame) {
         Viewport mainViewport = mainGame.mainViewpoint;
@@ -47,7 +44,6 @@ public class Loader implements Screen {
         y = screenHeight/2;
 
         this.mainGame = mainGame;
-        LoadFont.load();
     }
 
     public void addLoadingTask(String id, Runnable runnable) {
@@ -72,7 +68,7 @@ public class Loader implements Screen {
         }
 
         renderBackdrop();
-        //renderLoadingFont();
+        renderLoadingFont();
         renderTower();
     }
 
@@ -107,13 +103,13 @@ public class Loader implements Screen {
     }
 
     private void loadLoadingFont() {
-        String FontPath = "Fonts/Inter/static/Inter_18pt-Regular.fnt";
+        String FontPath = "Fonts/Inter/static/Inter_18pt-Regular.ttf";
         Viewport mainViewport = mainGame.mainViewpoint;
 
         labelViewport = new FitViewport(mainViewport.getWorldWidth(), mainViewport.getWorldHeight());
         labelBatch = new SpriteBatch();
-        LoadFont.bitmapFont(FontPath);
-        loadingFont = LoadFont.generateFont(FontPath, 30);
+        loadingFont = LoadFont.generateFont(FontPath, 500);
+        loadingFont.setColor(Color.BLACK);
     }
 
     private void loadBackdrop(){
@@ -121,7 +117,6 @@ public class Loader implements Screen {
 
         backdropViewport = new StretchViewport(mainViewport.getWorldWidth(), mainViewport.getWorldHeight());
         backdropBatch = new SpriteBatch();
-
         backdropSprite = new Sprite(backdrop);
         backdropSprite.setSize(mainViewport.getWorldWidth(), mainViewport.getWorldHeight());
     }
@@ -141,7 +136,7 @@ public class Loader implements Screen {
         labelBatch.setProjectionMatrix(labelViewport.getCamera().combined);
         labelBatch.begin();
 
-        loadingFont.draw(labelBatch, "loading...", x, y/5);
+        loadingFont.draw(labelBatch, "loading...", 450, 200);
 
         labelBatch.end();
     }
