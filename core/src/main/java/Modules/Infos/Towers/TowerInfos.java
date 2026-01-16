@@ -9,6 +9,7 @@ import java.util.Map;
 
 public class TowerInfos {
     public interface TowerInfo {
+        Map<String, Float> spriteScales = new HashMap<>();
         HashMap<String, Float> stats = new HashMap<>();
         Sprite sprite = new Sprite();
         String texturePath = "";
@@ -16,10 +17,11 @@ public class TowerInfos {
 
         float x = 0, y = 0, scale = 1;
 
-        String getTexturePath();
-        String getName();
+        Map<String, Float> getSpriteScales();
         HashMap<String, Float> getStats();
+        String getTexturePath();
         Sprite getSprite();
+        String getName();
 
         Runnable loadSprite();
         Runnable drawSprite(Batch batch);
@@ -60,8 +62,9 @@ public class TowerInfos {
 
     // Tower Info Classes (All Tower Infos)
     private final static class Test implements TowerInfo {
-        private final String name;
+        private final Map<String, Float> spriteScales;
         private final HashMap<String, Float> stats;
+        private final String name;
 
         private final float x, y, scale;
 
@@ -76,6 +79,10 @@ public class TowerInfos {
             this.scale = scale;
 
             stats = new HashMap<>();
+            spriteScales = Map.ofEntries(
+              Map.entry("Loadout", 0.05f)
+            );
+
             setStats();
         }
 
@@ -109,6 +116,11 @@ public class TowerInfos {
         public Runnable drawSprite(Batch batch) {
             notLoaded = drawTowerSprite(name, sprite, batch, notLoaded);
             return null;
+        }
+
+        @Override
+        public Map<String, Float> getSpriteScales() {
+            return spriteScales;
         }
 
         private void setStats() {

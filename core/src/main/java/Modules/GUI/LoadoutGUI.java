@@ -1,7 +1,10 @@
 package Modules.GUI;
 
+import Modules.Infos.Towers.TowerInfos;
+import Modules.Systems.Towers;
 import Modules.Systems.Towers.Tower;
 import Modules.Tools.LoadFont;
+import Modules.Tools.SpriteMethods;
 import Modules.Tools.Tuples.Pair;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
@@ -11,6 +14,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -41,7 +45,8 @@ public class LoadoutGUI {
         hotkeyFonts = new Vector<>();
 
         for (int i = 0; i < maxTowers; i++){
-            Sprite[] towerGUI = loadTowerGUI();
+            Pair<String, Tower> hotkey = (i < loadout.size())? loadout.get(i) : new Pair<>("", null);
+            Sprite[] towerGUI = loadTowerGUI(hotkey);
             loadoutSprites.add(towerGUI);
 
             loadHotkeyFont();
@@ -49,24 +54,8 @@ public class LoadoutGUI {
     }
 
     public void render() {
-        loadoutViewport.apply();
-        loadoutBatch.setProjectionMatrix(loadoutViewport.getCamera().combined);
-        loadoutBatch.enableBlending();
-        loadoutBatch.begin();
-
-        for (int loadoutNum = 0; loadoutNum < loadoutSprites.size(); loadoutNum++) {
-            Pair<Float, Float> fontPos = renderLoadout(loadoutNum);
-            Pair<String, Tower> hotkey;
-            if (loadoutNum >= loadout.size()) { continue; }
-
-            hotkey = loadout.get(loadoutNum);
-            if (hotkey == null) {
-                continue;
-            }
-            renderHotkey(loadoutNum, hotkey.first, fontPos.first, fontPos.second);
-        }
-
-        loadoutBatch.end();
+        checkClickDetection();
+        renderLoadout();
     }
 
     public void resize(int screenWidth, int screenHeight) {
@@ -85,24 +74,22 @@ public class LoadoutGUI {
     }
 
     private void loadHotkeyFont() {
-        BitmapFont hotkeyFont = LoadFont.generateFont("ThaleahFat.ttf", 20);
+        BitmapFont hotkeyFont = LoadFont.generateFont("ThaleahFat.ttf", 40);
         hotkeyFont.setColor(Color.BLACK);
 
         hotkeyFonts.add(hotkeyFont);
     }
 
-    private void loadTowerSprite(Tower tower) {
-
+    private Sprite loadTowerSprite(Tower tower, float x, float y) {
+        if (tower == null || tower.getSpriteScales().get("Loadout") == null) { return null; }
+        return TowerInfos.loadTowerSprite(tower.getTexturePath(), x, y, tower.getSpriteScales().get("Loadout"));
     }
 
-    private void loadTowerSprites() {
-
-    }
-
-    private Sprite[] loadTowerGUI(){
+    private Sprite[] loadTowerGUI(Pair<String, Tower> hotkey){
         Texture loadoutTexture = new Texture("Images/GUI/Loadout.png");
         Sprite loadoutBackground = new Sprite(loadoutTexture);
-        Sprite[] towerGUI = new Sprite[3];
+        Sprite[] towerGUI = new Sprite[2];
+        float towerX, towerY;
 
         int loadoutNum = loadoutSprites.size();
         float scale = 0.55f;
@@ -112,29 +99,56 @@ public class LoadoutGUI {
         loadoutBackground.setCenter( mainViewport.getWorldWidth() / 4f + width*loadoutNum*1.5f, 70);
         loadoutBackground.setOriginCenter();
 
+        towerX = loadoutBackground.getX() + loadoutBackground.getWidth()/2;
+        towerY = loadoutBackground.getY() + loadoutBackground.getHeight()/2;
+
         towerGUI[0] = loadoutBackground;
+        towerGUI[1] = loadTowerSprite(hotkey.second, towerX, towerY);
 
         return towerGUI;
     }
 
-    private Pair<Float, Float> renderLoadout(int loadoutNum) {
+    private void renderTowerGUI(int loadoutNum, String hotkey) {
         Sprite[] loadoutGUI = loadoutSprites.elementAt(loadoutNum);
         Sprite backgroundGUI = loadoutGUI[0];
 
-        float fontXPos = backgroundGUI.getOriginX();
-        float fontYPos = backgroundGUI.getOriginY();
+        float fontXPos = backgroundGUI.getX() + backgroundGUI.getWidth() / 1.25f;
+        float fontYPos = backgroundGUI.getY() + backgroundGUI.getHeight() / 5.5f;
 
         for (Sprite sprite : loadoutGUI) {
             if (sprite == null) { break; }
             sprite.draw(loadoutBatch);
         }
 
-        return new Pair<>(fontXPos, fontYPos);
+        renderHotkey(loadoutNum, hotkey, fontXPos, fontYPos);
     }
 
     private void renderHotkey(int loadoutNum, String hotkey, float x, float y){
         if (hotkey == null) { return; }
         BitmapFont hotkeyFont = hotkeyFonts.get(loadoutNum);
         hotkeyFont.draw(loadoutBatch, hotkey, x, y);
+    }
+
+    private void renderLoadout(){
+        loadoutViewport.apply();
+        loadoutBatch.setProjectionMatrix(loadoutViewport.getCamera().combined);
+        loadoutBatch.enableBlending();
+        loadoutBatch.begin();
+
+        for (int loadoutNum = 0; loadoutNum < loadoutSprites.size(); loadoutNum++) {
+            Pair<String, Tower> hotkey = (loadoutNum < loadout.size())? loadout.get(loadoutNum) : new Pair<>("", null);
+            renderTowerGUI(loadoutNum, hotkey.first);
+        }
+
+        loadoutBatch.end();
+    }
+
+    private void checkClickDetection(){
+        for (Sprite[] loadoutSprite : loadoutSprites) {
+            Sprite loadoutBackground = loadoutSprite[0];
+            SpriteMethods.onClicked(loadoutBackground, () -> {
+                System.out.println("YESS");
+            });
+        }
     }
 }

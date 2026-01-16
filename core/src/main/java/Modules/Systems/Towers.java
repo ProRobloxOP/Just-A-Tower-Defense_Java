@@ -1,6 +1,7 @@
 package Modules.Systems;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import Modules.Infos.Towers.TowerInfos;
@@ -13,6 +14,7 @@ public class Towers {
 
     public static class Tower implements TowerInfo {
         private final UUID UUID;
+        private Map<String, Float> spriteScales;
         private HashMap<String, Float> stats;
         private Sprite sprite;
         private String texturePath;
@@ -28,6 +30,7 @@ public class Towers {
             this.UUID = new UUID(Long.MAX_VALUE, Long.MIN_VALUE);
             this.sprite = towerInfo.getSprite();
             this.texturePath = towerInfo.getTexturePath();
+            this.spriteScales = towerInfo.getSpriteScales();
 
             this.x = x;
             this.y = y;
@@ -46,6 +49,11 @@ public class Towers {
         @Override
         public String getName() {
             return name;
+        }
+
+        @Override
+        public Map<String, Float> getSpriteScales() {
+            return spriteScales;
         }
 
         @Override
