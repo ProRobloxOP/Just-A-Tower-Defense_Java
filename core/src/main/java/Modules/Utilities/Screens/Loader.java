@@ -1,11 +1,15 @@
-package Modules.Utilities;
+package Modules.Utilities.Screens;
 
+import Modules.Utilities.UserData;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.*;
 
 import Modules.Tools.LoadFont;
@@ -46,6 +50,14 @@ public class Loader implements Screen {
         this.mainGame = mainGame;
     }
 
+    public Main getMainGame() {
+        return mainGame;
+    }
+
+    public Viewport getMainViewport(){
+        return mainGame.mainViewpoint;
+    }
+
     public void addLoadingTask(String id, Runnable runnable) {
         //loadingRunnables.put(id, runnable);
         runnable.run();
@@ -55,6 +67,8 @@ public class Loader implements Screen {
     public void show() {
         loadingRunnables = new HashMap<>();
 
+        addLoadingTask("UserData", UserData::load);
+
         addLoadingTask("Backdrop", this::loadBackdrop);
         addLoadingTask("LoadingLabel", this::loadLoadingFont);
         addLoadingTask("ShowcaseTower", this::loadShowcaseTower);
@@ -62,10 +76,8 @@ public class Loader implements Screen {
 
     @Override
     public void render(float delta) {
-        if (showcaseTower == null){
-            System.out.println("Loader is not loaded!");
-            return;
-        }
+        ScreenUtils.clear(Color.BLACK);
+        onInput();
 
         renderBackdrop();
         renderLoadingFont();
@@ -76,6 +88,7 @@ public class Loader implements Screen {
     public void resize(int width, int height) {
         backdropViewport.update(width, height, true);
         towerViewport.update(width, height, true);
+        labelViewport.update(width, height, true);
     }
 
     @Override
@@ -102,13 +115,19 @@ public class Loader implements Screen {
         loadingFont.dispose();
     }
 
+    private void onInput() {
+        if (Gdx.input.isTouched()) {
+            mainGame.setScreen(new BattleScreen(this));
+        }
+    }
+
     private void loadLoadingFont() {
-        String FontPath = "Fonts/Inter/static/Inter_18pt-Regular.ttf";
+        String FontPath = "ThaleahFat.ttf";
         Viewport mainViewport = mainGame.mainViewpoint;
 
         labelViewport = new FitViewport(mainViewport.getWorldWidth(), mainViewport.getWorldHeight());
         labelBatch = new SpriteBatch();
-        loadingFont = LoadFont.generateFont(FontPath, 500);
+        loadingFont = LoadFont.generateFont(FontPath, 45);
         loadingFont.setColor(Color.BLACK);
     }
 
@@ -122,21 +141,23 @@ public class Loader implements Screen {
     }
 
     private void loadShowcaseTower(){
-        TowerInfos towerInfos = new TowerInfos();
         Viewport mainViewport = mainGame.mainViewpoint;
 
         towerViewport = new FitViewport(mainViewport.getWorldWidth(), mainViewport.getWorldHeight());
         towerBatch = new SpriteBatch();
-        showcaseTower = towerInfos.getTower("Test", (int) x, (int) (y*1.25), 0.3f);
+        showcaseTower = TowerInfos.get("Test", x, y*1.25f, 0.3f);
         showcaseTower.loadSprite();
     }
 
     private void renderLoadingFont(){
+        GlyphLayout glyphLayout = new GlyphLayout();
+        glyphLayout.setText(loadingFont, "Touch To Play!");
+
         labelViewport.apply();
         labelBatch.setProjectionMatrix(labelViewport.getCamera().combined);
         labelBatch.begin();
 
-        loadingFont.draw(labelBatch, "loading...", 450, 200);
+        loadingFont.draw(labelBatch, "Touch To Play!", x - glyphLayout.width/2, y/2);
 
         labelBatch.end();
     }

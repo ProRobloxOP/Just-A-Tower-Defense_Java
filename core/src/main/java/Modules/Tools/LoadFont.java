@@ -10,7 +10,7 @@ public class LoadFont {
     private static BitmapFontParameter bmfparams;
 
     public static BitmapFont generateFont(String fontPath, int size) {
-        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal(fontPath));
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("Fonts/"+fontPath));
         FreeTypeFontParameter parameter = new FreeTypeFontParameter();
         parameter.size = size;
 

@@ -1,6 +1,6 @@
 package io.github.justatowerdefense_java;
 
-import Modules.Utilities.Loader;
+import Modules.Utilities.Screens.Loader;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.utils.viewport.*;
 
