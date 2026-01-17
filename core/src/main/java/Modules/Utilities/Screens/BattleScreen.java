@@ -47,7 +47,7 @@ public class BattleScreen implements Screen {
     @Override
     public void resize(int width, int height) {
         loadoutGui.resize(width, height);
-        viewport.update(width, height);
+        viewport.update(width, height, true);
     }
 
     @Override

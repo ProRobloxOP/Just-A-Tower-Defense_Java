@@ -166,7 +166,7 @@ public class LoadoutGUI {
         Vector3 cameraVector = loadoutViewport.getCamera().unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
 
         SpriteMethods.setPosition(selectedTowerSprite, cameraVector.x, cameraVector.y);
-        selectedTower.setPosition(selectedTowerSprite.getX(), selectedTowerSprite.getY());
+        selectedTower.setPosition(SpriteMethods.getX(selectedTowerSprite), SpriteMethods.getY(selectedTowerSprite));
         selectedTowerSprite.draw(loadoutBatch);
     }
 
