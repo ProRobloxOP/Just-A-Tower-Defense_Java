@@ -13,21 +13,21 @@ public class Towers {
     private static final HashMap<UUID, Tower> towers = new HashMap<>();
 
     public static class Tower implements TowerInfo {
-        private final UUID UUID;
+        private UUID UUID;
         private Map<String, Float> spriteScales;
         private HashMap<String, Float> stats;
         private Sprite sprite;
         private String texturePath;
         private String name;
 
-        float x = 0, y = 0, scale = 1;
+        private float x = 0, y = 0, scale = 1;
         boolean notLoaded = true;
 
         public Tower(String name, float x, float y, float scale) {
             TowerInfo towerInfo = TowerInfos.get(name, x, y, scale);
 
             this.name = towerInfo.getName();
-            this.UUID = new UUID(Long.MAX_VALUE, Long.MIN_VALUE);
+            this.UUID = java.util.UUID.randomUUID();
             this.sprite = towerInfo.getSprite();
             this.texturePath = towerInfo.getTexturePath();
             this.spriteScales = towerInfo.getSpriteScales();
@@ -35,6 +35,11 @@ public class Towers {
             this.x = x;
             this.y = y;
             this.scale = scale;
+        }
+
+        public Tower(String name, float x,  float y, float scale, String texturePath){
+            Tower tower = new Tower(name, x, y, scale, texturePath);
+            this.texturePath = texturePath;
         }
 
         public UUID getUUID() {
@@ -49,6 +54,16 @@ public class Towers {
         @Override
         public String getName() {
             return name;
+        }
+
+        @Override
+        public float getX() {
+            return x;
+        }
+
+        @Override
+        public float getY() {
+            return y;
         }
 
         @Override
@@ -78,18 +93,32 @@ public class Towers {
             TowerInfos.drawTowerSprite(name, sprite, batch, notLoaded);
             return null;
         }
+
+        public void setPosition(float x, float y) {
+            this.x = x;
+            this.y = y;
+        }
     }
 
     public Towers(){}
 
-    public HashMap<UUID, Tower> getTowers() {
+    public static HashMap<UUID, Tower> getTowers() {
         return towers;
     }
 
-    public static Tower create(String name, int x, int y, float scale) {
-       Tower tower = new Tower(name, x, y, scale);
+    public static Tower create(String name, float x, float y, float scale) {
+        return new Tower(name, x, y, scale);
+    }
 
-        towers.put(tower.getUUID(), tower);
+    public static Tower create(String name, float x, float y, float scale, String texturePath) {
+        Tower tower = create(name, x, y, scale);
+        tower.texturePath = texturePath;
+
         return tower;
+    }
+
+    public static void addTower(Tower tower){
+        tower.loadSprite();
+        towers.put(tower.UUID, tower);
     }
 }

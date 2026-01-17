@@ -1,5 +1,6 @@
 package Modules.Infos.Towers;
 
+import Modules.Tools.SpriteMethods;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -23,6 +24,9 @@ public class TowerInfos {
         Sprite getSprite();
         String getName();
 
+        float getX();
+        float getY();
+
         Runnable loadSprite();
         Runnable drawSprite(Batch batch);
     }
@@ -40,8 +44,7 @@ public class TowerInfos {
         Sprite sprite = new Sprite(texture);
 
         sprite.setSize(texture.getWidth()*scale, texture.getHeight()*scale);
-        sprite.setCenter(x, y);
-        sprite.setOriginCenter();
+        SpriteMethods.setPosition(sprite, x, y);
 
         return sprite;
     }
@@ -80,7 +83,8 @@ public class TowerInfos {
 
             stats = new HashMap<>();
             spriteScales = Map.ofEntries(
-              Map.entry("Loadout", 0.05f)
+                Map.entry("Loadout", 0.05f),
+                Map.entry("Regular", 0.1f)
             );
 
             setStats();
@@ -94,6 +98,16 @@ public class TowerInfos {
         @Override
         public String getName() {
             return name;
+        }
+
+        @Override
+        public float getX() {
+            return 0;
+        }
+
+        @Override
+        public float getY() {
+            return 0;
         }
 
         @Override

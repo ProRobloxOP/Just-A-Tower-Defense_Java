@@ -5,13 +5,17 @@ import Modules.Systems.Towers;
 import Modules.Systems.Towers.Tower;
 import Modules.Tools.LoadFont;
 import Modules.Tools.SpriteMethods;
+import Modules.Tools.SpriteMethods.InteractableSprites;
 import Modules.Tools.Tuples.Pair;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.awt.*;
@@ -19,14 +23,18 @@ import java.util.HashMap;
 import java.util.Vector;
 
 public class LoadoutGUI {
-    private HashMap<String, HashMap<String, Sprite>> towerSprites;
-    private FitViewport loadoutViewport;
+    private HashMap<Sprite, Tower> towerLoadouts;
+    private FillViewport loadoutViewport;
     private SpriteBatch loadoutBatch;
     private Vector<Sprite[]> loadoutSprites;
 
     private Vector<BitmapFont> hotkeyFonts;
     private Vector<Pair<String, Tower>> loadout;
     private int maxTowers;
+
+    private Sprite selectedTowerSprite;
+    private Tower selectedTower;
+    private boolean hoveringOverGUI;
 
     private Viewport mainViewport;
 
@@ -39,14 +47,17 @@ public class LoadoutGUI {
     }
 
     public void load() {
-        loadoutViewport = new FitViewport(mainViewport.getWorldWidth(), mainViewport.getWorldHeight());
+        loadoutViewport = new FillViewport(mainViewport.getWorldWidth(), mainViewport.getWorldHeight());
         loadoutBatch = new SpriteBatch();
         loadoutSprites = new Vector<>();
+        towerLoadouts = new HashMap<>();
         hotkeyFonts = new Vector<>();
 
+        hoveringOverGUI = false;
+
         for (int i = 0; i < maxTowers; i++){
-            Pair<String, Tower> hotkey = (i < loadout.size())? loadout.get(i) : new Pair<>("", null);
-            Sprite[] towerGUI = loadTowerGUI(hotkey);
+            Tower tower = (i < loadout.size())? loadout.get(i).second : null;
+            Sprite[] towerGUI = loadTowerGUI(tower);
             loadoutSprites.add(towerGUI);
 
             loadHotkeyFont();
@@ -54,7 +65,8 @@ public class LoadoutGUI {
     }
 
     public void render() {
-        checkClickDetection();
+        placeSelectedTower();
+        checkSelect();
         renderLoadout();
     }
 
@@ -73,6 +85,11 @@ public class LoadoutGUI {
         }
     }
 
+    private void resetSelectedTower(){
+        selectedTower = null;
+        selectedTowerSprite = null;
+    }
+
     private void loadHotkeyFont() {
         BitmapFont hotkeyFont = LoadFont.generateFont("ThaleahFat.ttf", 40);
         hotkeyFont.setColor(Color.BLACK);
@@ -85,7 +102,7 @@ public class LoadoutGUI {
         return TowerInfos.loadTowerSprite(tower.getTexturePath(), x, y, tower.getSpriteScales().get("Loadout"));
     }
 
-    private Sprite[] loadTowerGUI(Pair<String, Tower> hotkey){
+    private Sprite[] loadTowerGUI(Tower tower){
         Texture loadoutTexture = new Texture("Images/GUI/Loadout.png");
         Sprite loadoutBackground = new Sprite(loadoutTexture);
         Sprite[] towerGUI = new Sprite[2];
@@ -96,16 +113,31 @@ public class LoadoutGUI {
         float width = loadoutTexture.getWidth()*scale;
 
         loadoutBackground.setSize(width, loadoutTexture.getHeight()*scale);
-        loadoutBackground.setCenter( mainViewport.getWorldWidth() / 4f + width*loadoutNum*1.5f, 70);
-        loadoutBackground.setOriginCenter();
+        loadoutBackground.setPosition( mainViewport.getWorldWidth() / 4.5f + width*loadoutNum*1.5f, 30);
 
         towerX = loadoutBackground.getX() + loadoutBackground.getWidth()/2;
         towerY = loadoutBackground.getY() + loadoutBackground.getHeight()/2;
 
         towerGUI[0] = loadoutBackground;
-        towerGUI[1] = loadTowerSprite(hotkey.second, towerX, towerY);
+        towerGUI[1] = loadTowerSprite(tower, towerX, towerY);
+
+        InteractableSprites.add(loadoutBackground);
+
+        towerLoadouts.put(loadoutBackground, tower);
 
         return towerGUI;
+    }
+
+    private void placeSelectedTower(){
+        if (!Gdx.input.isTouched() || selectedTower == null) { return; }
+        if (InteractableSprites.hoverOnInteractable(selectedTowerSprite)) { return; }
+        Tower tower;
+        float scale = selectedTower.getSpriteScales().get("Regular");
+
+        tower = Towers.create(selectedTower.getName(), selectedTower.getX(), selectedTower.getY(), scale, selectedTower.getTexturePath());
+        Towers.addTower(tower);
+
+        resetSelectedTower();
     }
 
     private void renderTowerGUI(int loadoutNum, String hotkey) {
@@ -129,12 +161,22 @@ public class LoadoutGUI {
         hotkeyFont.draw(loadoutBatch, hotkey, x, y);
     }
 
+    private void renderSelectedTower() {
+        if (selectedTower == null) { return; }
+        Vector3 cameraVector = loadoutViewport.getCamera().unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+
+        SpriteMethods.setPosition(selectedTowerSprite, cameraVector.x, cameraVector.y);
+        selectedTower.setPosition(selectedTowerSprite.getX(), selectedTowerSprite.getY());
+        selectedTowerSprite.draw(loadoutBatch);
+    }
+
     private void renderLoadout(){
         loadoutViewport.apply();
         loadoutBatch.setProjectionMatrix(loadoutViewport.getCamera().combined);
         loadoutBatch.enableBlending();
         loadoutBatch.begin();
 
+        renderSelectedTower();
         for (int loadoutNum = 0; loadoutNum < loadoutSprites.size(); loadoutNum++) {
             Pair<String, Tower> hotkey = (loadoutNum < loadout.size())? loadout.get(loadoutNum) : new Pair<>("", null);
             renderTowerGUI(loadoutNum, hotkey.first);
@@ -143,11 +185,32 @@ public class LoadoutGUI {
         loadoutBatch.end();
     }
 
-    private void checkClickDetection(){
+    private void checkSelect(){
         for (Sprite[] loadoutSprite : loadoutSprites) {
             Sprite loadoutBackground = loadoutSprite[0];
-            SpriteMethods.onClicked(loadoutBackground, () -> {
-                System.out.println("YESS");
+            float clickedScale = 1.1f, hoverScale = 0.95f;
+
+            SpriteMethods.onClicked(loadoutBackground, loadoutViewport.getCamera(), () -> {
+                for (Sprite sprite : loadoutSprite) {
+                    float scale;
+
+                    if (sprite == null || towerLoadouts.get(sprite) == null) {
+                        return;
+                    }
+
+                    SpriteMethods.scaleInterpolate(sprite, clickedScale, 1.3f);
+                    selectedTower = towerLoadouts.get(sprite);
+                    scale = selectedTower.getSpriteScales().get("Regular");
+
+                    selectedTowerSprite = TowerInfos.loadTowerSprite(selectedTower.getTexturePath(), Gdx.input.getX(), Gdx.input.getY(), scale);
+                }
+            });
+
+            SpriteMethods.onHover(loadoutBackground, loadoutViewport.getCamera(), () -> {
+                for (Sprite sprite : loadoutSprite) {
+                    if (sprite == null) { return; }
+                    SpriteMethods.scaleInterpolate(sprite, hoverScale, 1.3f);
+                }
             });
         }
     }

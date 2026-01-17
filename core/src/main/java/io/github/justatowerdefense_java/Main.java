@@ -2,6 +2,7 @@ package io.github.justatowerdefense_java;
 
 import Modules.Utilities.Screens.Loader;
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.viewport.*;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
