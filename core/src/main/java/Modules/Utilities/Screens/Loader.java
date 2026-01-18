@@ -41,6 +41,8 @@ public class Loader implements Screen {
     private SpriteBatch labelBatch;
     private BitmapFont loadingFont;
 
+    private boolean loaded;
+
     public Loader(final Main mainGame) {
         Viewport mainViewport = mainGame.mainViewpoint;
         float screenWidth = mainViewport.getWorldWidth();
@@ -69,14 +71,14 @@ public class Loader implements Screen {
     public void show() {
         battleScreen = new BattleScreen(this);
         loadingRunnables = new Vector<>();
+        loaded = false;
+
+        this.loadBackdrop();
+        this.loadLoadingFont();
+        this.loadShowcaseTower();
 
         addLoadingTask("UserData", UserData::load);
-        addLoadingTask("Backdrop", this::loadBackdrop);
-        addLoadingTask("LoadingLabel", this::loadLoadingFont);
-        addLoadingTask("ShowcaseTower", this::loadShowcaseTower);
-
         addLoadingTask("BattleScreen", battleScreen::load);
-        beginLoading();
     }
 
     @Override
@@ -85,8 +87,8 @@ public class Loader implements Screen {
         onInput();
 
         renderBackdrop();
-        renderLoadingFont();
         renderTower();
+        beginLoading();
     }
 
     @Override
@@ -152,15 +154,15 @@ public class Loader implements Screen {
         showcaseTower.loadSprite();
     }
 
-    private void renderLoadingFont(){
+    private void setLoadingFont(String text){
         GlyphLayout glyphLayout = new GlyphLayout();
-        glyphLayout.setText(loadingFont, "Touch To Play!");
+        glyphLayout.setText(loadingFont, text);
 
         labelViewport.apply();
         labelBatch.setProjectionMatrix(labelViewport.getCamera().combined);
         labelBatch.begin();
 
-        loadingFont.draw(labelBatch, "Touch To Play!", x - glyphLayout.width/2, y/2);
+        loadingFont.draw(labelBatch, text, x - glyphLayout.width/2, y/2);
 
         labelBatch.end();
     }
@@ -189,6 +191,11 @@ public class Loader implements Screen {
     private void beginLoading() {
         Thread loadingThread;
 
+        if (loaded) {
+            setLoadingFont("Touch To Start!");
+            return;
+        }
+
         for (int i = 0; i < loadingRunnables.size(); i++) {
             Pair<String, Runnable> loader = loadingRunnables.get(i);
             String loaderName = loader.first;
@@ -196,6 +203,7 @@ public class Loader implements Screen {
 
             loadingThread = new Thread(runnable);
             loadingThread.run();
+            setLoadingFont("Loading " + loaderName + "...");
 
             try {
                 loadingThread.join();
@@ -203,5 +211,7 @@ public class Loader implements Screen {
                 throw new RuntimeException(e);
             }
         }
+
+        loaded = true;
     }
 }

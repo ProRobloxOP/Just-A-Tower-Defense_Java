@@ -1,6 +1,8 @@
 package Modules.Utilities.Screens;
 
 import Modules.GUI.LoadoutGUI;
+import Modules.Systems.GameMaps;
+import Modules.Systems.GameMaps.GameMap;
 import Modules.Systems.Towers;
 import Modules.Systems.Towers.Tower;
 import Modules.Tools.SpriteMethods.InteractableSprites;
@@ -20,6 +22,7 @@ public class BattleScreen implements Screen {
     private SpriteBatch spriteBatch;
     private FillViewport viewport;
     private LoadoutGUI loadoutGui;
+    private GameMap gameMap;
 
     private final Loader loader;
 
@@ -35,7 +38,8 @@ public class BattleScreen implements Screen {
         viewport = new FillViewport(mainViewport.getWorldWidth(), mainViewport.getWorldHeight());
         spriteBatch = new SpriteBatch();
 
-        Thread.yield();
+        gameMap = GameMaps.getMap("Graveyard");
+        gameMap.load(mainViewport);
     }
 
     @Override
@@ -89,6 +93,7 @@ public class BattleScreen implements Screen {
         spriteBatch.setProjectionMatrix(viewport.getCamera().combined);
         spriteBatch.begin();
 
+        gameMap.render(spriteBatch);
         renderTowers();
 
         spriteBatch.end();
