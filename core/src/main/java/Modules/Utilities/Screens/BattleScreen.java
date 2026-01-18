@@ -27,15 +27,19 @@ public class BattleScreen implements Screen {
         this.loader = loader;
     }
 
-    @Override
-    public void show(){
+    public void load(){
         mainViewport = loader.getMainViewport();
-        loadoutGui = new LoadoutGUI(mainViewport, UserData.getLoadout(), 5);
+        loadoutGui = new LoadoutGUI(loader, UserData.getLoadout(), 5);
         loader.addLoadingTask("Loadout", loadoutGui::load);
 
         viewport = new FillViewport(mainViewport.getWorldWidth(), mainViewport.getWorldHeight());
         spriteBatch = new SpriteBatch();
+
+        Thread.yield();
     }
+
+    @Override
+    public void show(){}
 
     @Override
     public void render(float delta) {

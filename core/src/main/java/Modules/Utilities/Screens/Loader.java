@@ -1,5 +1,6 @@
 package Modules.Utilities.Screens;
 
+import Modules.Tools.Tuples.Pair;
 import Modules.Utilities.UserData;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -18,11 +19,12 @@ import Modules.Infos.Towers.TowerInfos.TowerInfo;
 
 import io.github.justatowerdefense_java.Main;
 
-import java.util.HashMap;
+import java.util.Vector;
 
 public class Loader implements Screen {
     private final Texture backdrop = new Texture("Images/Backdrops/Loading.png");
-    private HashMap<String, Runnable> loadingRunnables;
+    private Vector<Pair<String, Runnable>> loadingRunnables;
+    private BattleScreen battleScreen;
     private TowerInfo showcaseTower;
 
     private final float x, y;
@@ -59,19 +61,22 @@ public class Loader implements Screen {
     }
 
     public void addLoadingTask(String id, Runnable runnable) {
-        //loadingRunnables.put(id, runnable);
-        runnable.run();
+        loadingRunnables.add(new Pair<>(id, runnable));
     }
 
+    //Preloads assets (e.g. sprites, text, etc.) to minimize runtime lag.
     @Override
     public void show() {
-        loadingRunnables = new HashMap<>();
+        battleScreen = new BattleScreen(this);
+        loadingRunnables = new Vector<>();
 
         addLoadingTask("UserData", UserData::load);
-
         addLoadingTask("Backdrop", this::loadBackdrop);
         addLoadingTask("LoadingLabel", this::loadLoadingFont);
         addLoadingTask("ShowcaseTower", this::loadShowcaseTower);
+
+        addLoadingTask("BattleScreen", battleScreen::load);
+        beginLoading();
     }
 
     @Override
@@ -116,9 +121,7 @@ public class Loader implements Screen {
     }
 
     private void onInput() {
-        if (Gdx.input.isTouched()) {
-            mainGame.setScreen(new BattleScreen(this));
-        }
+        if (Gdx.input.isTouched()) { mainGame.setScreen(battleScreen); }
     }
 
     private void loadLoadingFont() {
@@ -180,5 +183,25 @@ public class Loader implements Screen {
         showcaseTower.getSprite().draw(towerBatch);
 
         towerBatch.end();
+    }
+
+    //Loads all assets in Runnables
+    private void beginLoading() {
+        Thread loadingThread;
+
+        for (int i = 0; i < loadingRunnables.size(); i++) {
+            Pair<String, Runnable> loader = loadingRunnables.get(i);
+            String loaderName = loader.first;
+            Runnable runnable = loader.second;
+
+            loadingThread = new Thread(runnable);
+            loadingThread.run();
+
+            try {
+                loadingThread.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

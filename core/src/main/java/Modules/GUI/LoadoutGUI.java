@@ -7,9 +7,10 @@ import Modules.Tools.LoadFont;
 import Modules.Tools.SpriteMethods;
 import Modules.Tools.SpriteMethods.InteractableSprites;
 import Modules.Tools.Tuples.Pair;
+import Modules.Utilities.Screens.Loader;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -33,21 +34,25 @@ public class LoadoutGUI {
     private int maxTowers;
 
     private Sprite selectedTowerSprite;
+    private SpriteBatch selectedTowerBatch;
     private Tower selectedTower;
     private boolean hoveringOverGUI;
 
+    private Loader mainLoader;
     private Viewport mainViewport;
 
-    public LoadoutGUI(Viewport mainViewport, Vector<Pair<String, Tower>> loadout, Integer maxTowers){
+    public LoadoutGUI(Loader mainloader, Vector<Pair<String, Tower>> loadout, Integer maxTowers){
         if (maxTowers == null) { maxTowers = loadout.size(); }
 
         this.loadout = loadout;
         this.maxTowers = maxTowers;
-        this.mainViewport = mainViewport;
+        this.mainLoader = mainloader;
+        this.mainViewport = mainloader.getMainViewport();
     }
 
     public void load() {
         loadoutViewport = new FillViewport(mainViewport.getWorldWidth(), mainViewport.getWorldHeight());
+        selectedTowerBatch = new SpriteBatch();
         loadoutBatch = new SpriteBatch();
         loadoutSprites = new Vector<>();
         towerLoadouts = new HashMap<>();
@@ -55,13 +60,15 @@ public class LoadoutGUI {
 
         hoveringOverGUI = false;
 
-        for (int i = 0; i < maxTowers; i++){
-            Tower tower = (i < loadout.size())? loadout.get(i).second : null;
-            Sprite[] towerGUI = loadTowerGUI(tower);
-            loadoutSprites.add(towerGUI);
+        mainLoader.addLoadingTask("LoadoutGUI", () -> {
+            for (int i = 0; i < maxTowers; i++){
+                Tower tower = (i < loadout.size())? loadout.get(i).second : null;
+                Sprite[] towerGUI = loadTowerGUI(tower);
+                loadoutSprites.add(towerGUI);
 
-            loadHotkeyFont();
-        }
+                loadHotkeyFont();
+            }
+        });
     }
 
     public void render() {
@@ -75,6 +82,7 @@ public class LoadoutGUI {
     }
 
     public void dispose(){
+        selectedTowerBatch.dispose();
         loadoutBatch.dispose();
         disposeFonts();
     }
@@ -164,19 +172,34 @@ public class LoadoutGUI {
     private void renderSelectedTower() {
         if (selectedTower == null) { return; }
         Vector3 cameraVector = loadoutViewport.getCamera().unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+        float selectedTowerX, selectedTowerY, selectedTowerWidth, selectedTowerHeight;
+
+        selectedTowerBatch.setProjectionMatrix(loadoutViewport.getCamera().combined);
+        selectedTowerBatch.begin();
+        selectedTowerBatch.setColor(1, 1, 1, 0.25f);
 
         SpriteMethods.setPosition(selectedTowerSprite, cameraVector.x, cameraVector.y);
         selectedTower.setPosition(SpriteMethods.getX(selectedTowerSprite), SpriteMethods.getY(selectedTowerSprite));
-        selectedTowerSprite.draw(loadoutBatch);
+        selectedTowerX = selectedTowerSprite.getX();
+        selectedTowerY = selectedTowerSprite.getY();
+        selectedTowerWidth = selectedTowerSprite.getWidth();
+        selectedTowerHeight = selectedTowerSprite.getHeight();
+
+        selectedTowerBatch.draw(selectedTowerSprite, selectedTowerX, selectedTowerY, selectedTowerWidth, selectedTowerHeight);
+
+        selectedTowerBatch.end();
+        selectedTowerBatch.setColor(1, 1, 1, 1);
     }
 
     private void renderLoadout(){
         loadoutViewport.apply();
+        renderSelectedTower();
+
         loadoutBatch.setProjectionMatrix(loadoutViewport.getCamera().combined);
         loadoutBatch.enableBlending();
+        loadoutBatch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         loadoutBatch.begin();
 
-        renderSelectedTower();
         for (int loadoutNum = 0; loadoutNum < loadoutSprites.size(); loadoutNum++) {
             Pair<String, Tower> hotkey = (loadoutNum < loadout.size())? loadout.get(loadoutNum) : new Pair<>("", null);
             renderTowerGUI(loadoutNum, hotkey.first);
