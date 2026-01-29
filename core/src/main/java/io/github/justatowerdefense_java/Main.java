@@ -26,7 +26,8 @@ public class Main extends Game {
     }
 
     /**
-     *
+     *LibGDX calls this method, which is called when the window is resized.
+     *In return, all other sprites and graphics related to the mainViewport are also resized.
      *
      * @param width given width to resize by LibGDX
      * @param height given height to resize by LibGDX
@@ -37,6 +38,9 @@ public class Main extends Game {
         mainViewpoint.update(width, height, true);
     }
 
+    /**
+     * LibGDX calls this method, currently only allows the window to render.
+     */
     @Override
     public void render() {
         super.render();

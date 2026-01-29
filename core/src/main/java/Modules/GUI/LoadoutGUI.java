@@ -36,7 +36,6 @@ public class LoadoutGUI {
     private Sprite selectedTowerSprite;
     private SpriteBatch selectedTowerBatch;
     private Tower selectedTower;
-    private boolean hoveringOverGUI;
 
     private Loader mainLoader;
     private Viewport mainViewport;
@@ -57,8 +56,6 @@ public class LoadoutGUI {
         loadoutSprites = new Vector<>();
         towerLoadouts = new HashMap<>();
         hotkeyFonts = new Vector<>();
-
-        hoveringOverGUI = false;
 
         mainLoader.addLoadingTask("LoadoutGUI", () -> {
             for (int i = 0; i < maxTowers; i++){

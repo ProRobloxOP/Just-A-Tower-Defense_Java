@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class BattleScreen implements Screen {
-    private Viewport mainViewport;
     private SpriteBatch spriteBatch;
     private FillViewport viewport;
     private LoadoutGUI loadoutGui;
@@ -31,7 +30,7 @@ public class BattleScreen implements Screen {
     }
 
     public void load(){
-        mainViewport = loader.getMainViewport();
+        Viewport mainViewport = loader.getMainViewport();
         loadoutGui = new LoadoutGUI(loader, UserData.getLoadout(), 5);
         loader.addLoadingTask("Loadout", loadoutGui::load);
 
